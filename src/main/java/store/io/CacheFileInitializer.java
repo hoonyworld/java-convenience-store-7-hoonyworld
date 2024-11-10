@@ -4,8 +4,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import store.exception.StateErrorMessage;
+import store.exception.StoreStateException;
 
 public class CacheFileInitializer {
+    private static final String EMPTY_CONTENT = "";
 
     private final Path productsFilePath;
     private final Path productsCacheFilePath;
@@ -23,7 +26,7 @@ public class CacheFileInitializer {
             clearProductsCacheFile();
             copyProductsFileToProductsCacheFile();
         } catch (IOException e) {
-            System.err.println(e.getMessage());
+            throw StoreStateException.from(StateErrorMessage.FILE_OPERATION_ERROR);
         }
     }
 
@@ -36,7 +39,7 @@ public class CacheFileInitializer {
     }
 
     private void clearProductsCacheFile() throws IOException {
-        Files.writeString(productsCacheFilePath, "");
+        Files.writeString(productsCacheFilePath, EMPTY_CONTENT);
     }
 
     private void copyProductsFileToProductsCacheFile() throws IOException {

@@ -1,6 +1,7 @@
 package store.service;
 
 import store.dao.ProductDAO;
+import store.domain.entity.Product;
 import store.dto.ProductDTO;
 import store.dto.ProductDisplayDTO;
 import store.domain.vo.Name;
@@ -21,7 +22,9 @@ public class StoreService {
     }
 
     public List<ProductDTO> findAllProducts() {
-        return productDAO.findAll();
+        return productDAO.findAll().stream()
+                .map(ProductDTO::from)
+                .collect(Collectors.toList());
     }
 
     public List<ProductDisplayDTO> findAllProductsForDisplay(List<ProductDTO> productDTOS) {

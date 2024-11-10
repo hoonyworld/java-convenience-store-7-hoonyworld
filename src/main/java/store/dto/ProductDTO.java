@@ -1,5 +1,6 @@
 package store.dto;
 
+import store.domain.entity.Product;
 import store.domain.vo.Name;
 import store.domain.PromotionType;
 import store.domain.vo.Money;
@@ -11,7 +12,12 @@ public record ProductDTO(
         Quantity quantity,
         PromotionType promotionType
 ) {
-    public static ProductDTO of(Name name, Money money, Quantity quantity, PromotionType promotionType) {
-        return new ProductDTO(name, money, quantity, promotionType);
+    public static ProductDTO from(Product product) {
+        return new ProductDTO(
+                product.getName(),
+                product.getMoney(),
+                product.getQuantity(),
+                product.getPromotionType()
+        );
     }
 }

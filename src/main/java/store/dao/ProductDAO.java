@@ -46,6 +46,6 @@ public class ProductDAO {
         Quantity quantity = Quantity.newInstance(Integer.parseInt(parts.get(QUANTITY_INDEX)));
         PromotionType promotionType = PromotionType.from(parts.get(PROMOTION_INDEX).trim());
 
-        return new ProductDTO(name, money, quantity, promotionType);
+        return ProductDTO.of(name, money, quantity, promotionType);
     }
 }

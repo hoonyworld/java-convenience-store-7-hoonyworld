@@ -56,8 +56,8 @@
 ### `products_cache.md` 파일 초기화
 
 - **프로그램 시작 시** `products_cache.md` 파일을 생성하고 `products.md` 파일의 내용을 복사하여 붙여넣기 한다.
-    - [ ] `products_cache.md` 파일이 존재하지 않으면, `products.md` 파일의 내용을 복사하여 `products_cache.md` 파일을 생성한다.
-    - [ ] `products_cache.md` 파일이 이미 존재할 경우, 해당 파일을 초기화한 후 `products.md` 파일의 내용을 복사하여 붙여넣기 한다.
+    - [x] `products_cache.md` 파일이 존재하지 않으면, `products.md` 파일의 내용을 복사하여 `products_cache.md` 파일을 생성한다.
+    - [x] `products_cache.md` 파일이 이미 존재할 경우, 해당 파일을 초기화한 후 `products.md` 파일의 내용을 복사하여 붙여넣기 한다.
 
 
 ### 상품 표시 및 입력 요청 메시지 출력

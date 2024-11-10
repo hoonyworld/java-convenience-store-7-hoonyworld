@@ -1,8 +1,7 @@
-package store.domain;
+package store.domain.vo;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import store.domain.vo.Money;
 import store.exception.StoreArgumentException;
 
 import static org.junit.jupiter.api.Assertions.*;

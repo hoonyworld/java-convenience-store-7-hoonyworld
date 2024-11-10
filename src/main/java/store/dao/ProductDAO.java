@@ -6,11 +6,11 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import store.domain.entity.Product;
 import store.domain.vo.Name;
 import store.domain.PromotionType;
 import store.domain.vo.Money;
 import store.domain.vo.Quantity;
-import store.dto.ProductDTO;
 import store.exception.StateErrorMessage;
 import store.exception.StoreStateException;
 
@@ -28,7 +28,7 @@ public class ProductDAO {
         this.productsFilePath = productsFilePath;
     }
 
-    public List<ProductDTO> findAll() {
+    public List<Product> findAll() {
         try (Stream<String> lines = Files.lines(productsFilePath)) {
             return lines.filter(line -> !line.startsWith(NAME))
                     .map(this::parseProduct)
@@ -38,7 +38,7 @@ public class ProductDAO {
         }
     }
 
-    private ProductDTO parseProduct(String line) {
+    private Product parseProduct(String line) {
         List<String> parts = List.of(line.split(DELIMITER));
 
         Name name = Name.newInstance(parts.get(NAME_INDEX));
@@ -46,6 +46,6 @@ public class ProductDAO {
         Quantity quantity = Quantity.newInstance(Integer.parseInt(parts.get(QUANTITY_INDEX)));
         PromotionType promotionType = PromotionType.from(parts.get(PROMOTION_INDEX).trim());
 
-        return ProductDTO.of(name, money, quantity, promotionType);
+        return Product.create(name, money, quantity, promotionType);
     }
 }

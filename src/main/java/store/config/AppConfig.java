@@ -3,6 +3,7 @@ package store.config;
 import java.nio.file.Path;
 import store.controller.StoreController;
 import store.dao.ProductDAO;
+import store.dao.PromotionDAO;
 import store.io.CacheFileInitializer;
 import store.service.StoreService;
 import store.template.RetryTemplate;
@@ -14,6 +15,7 @@ import store.view.console.ConsoleOutputView;
 public class AppConfig {
     private static final Path PRODUCTS_FILE_PATH = Path.of("src/main/resources/products.md");
     private static final Path PRODUCTS_CACHE_FILE_PATH = Path.of("src/main/resources/product_cache.md");
+    private static final Path PROMOTIONS_FILE_PATH = Path.of("src/main/resources/promotions.md");
 
     private AppConfig() {
     }
@@ -43,11 +45,15 @@ public class AppConfig {
     }
 
     private StoreService createStoreService() {
-        return new StoreService(createProductDAO());
+        return new StoreService(createProductDAO(), createPromotionDAO());
     }
 
     private ProductDAO createProductDAO() {
         return new ProductDAO(PRODUCTS_CACHE_FILE_PATH);
+    }
+
+    private PromotionDAO createPromotionDAO() {
+        return new PromotionDAO(PROMOTIONS_FILE_PATH);
     }
 
     private RetryTemplate createRetryTemplate() {

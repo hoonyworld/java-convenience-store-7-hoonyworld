@@ -20,4 +20,8 @@ public record ProductDTO(
                 product.getPromotionType()
         );
     }
+
+    public Product toEntity() {
+        return Product.create(name, money, quantity, promotionType);
+    }
 }

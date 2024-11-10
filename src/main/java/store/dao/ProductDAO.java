@@ -11,7 +11,9 @@ import store.domain.vo.Name;
 import store.domain.PromotionType;
 import store.domain.vo.Money;
 import store.domain.vo.Quantity;
+import store.exception.ArgumentErrorMessage;
 import store.exception.StateErrorMessage;
+import store.exception.StoreArgumentException;
 import store.exception.StoreStateException;
 
 public class ProductDAO {
@@ -36,6 +38,13 @@ public class ProductDAO {
         } catch (IOException e) {
             throw StoreStateException.from(StateErrorMessage.FILE_OPERATION_ERROR);
         }
+    }
+
+    public Product findByName(Name name) {
+        return findAll().stream()
+                .filter(product -> product.getName().equals(name))
+                .findFirst()
+                .orElseThrow(() -> StoreArgumentException.from(ArgumentErrorMessage.PRODUCT_NOT_FOUND));
     }
 
     private Product parseProduct(String line) {

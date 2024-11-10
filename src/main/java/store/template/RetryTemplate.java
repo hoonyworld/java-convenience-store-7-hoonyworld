@@ -19,4 +19,15 @@ public class RetryTemplate {
             }
         }
     }
+
+    public void execute(Runnable action) {
+        while (true) {
+            try {
+                action.run();
+                break;
+            } catch (IllegalArgumentException e) {
+                outputView.printExceptionMessage(e);
+            }
+        }
+    }
 }

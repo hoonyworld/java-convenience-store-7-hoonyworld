@@ -2,6 +2,7 @@ package store.config;
 
 import java.nio.file.Path;
 import store.controller.StoreController;
+import store.dao.ProductDAO;
 import store.io.CacheFileInitializer;
 import store.service.StoreService;
 import store.template.RetryTemplate;
@@ -42,7 +43,11 @@ public class AppConfig {
     }
 
     private StoreService createStoreService() {
-        return new StoreService();
+        return new StoreService(createProductDAO());
+    }
+
+    private ProductDAO createProductDAO() {
+        return new ProductDAO(PRODUCTS_CACHE_FILE_PATH);
     }
 
     private RetryTemplate createRetryTemplate() {

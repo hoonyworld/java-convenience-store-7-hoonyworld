@@ -2,7 +2,6 @@ package store.domain.vo;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import store.exception.StoreArgumentException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -18,14 +17,14 @@ class NameTest {
     @Test
     @DisplayName("빈 문자열로 Name 인스턴스를 생성할 때 예외를 발생시킨다.")
     void createName_emptyString() {
-        Exception exception = assertThrows(StoreArgumentException.class, () -> Name.newInstance(""));
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> Name.newInstance(""));
         assertEquals("[ERROR] 이름은 null이거나 빈 값일 수 없습니다.", exception.getMessage());
     }
 
     @Test
     @DisplayName("null로 Name 인스턴스를 생성할 때 예외를 발생시킨다.")
     void createName_nullValue() {
-        Exception exception = assertThrows(StoreArgumentException.class, () -> Name.newInstance(null));
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> Name.newInstance(null));
         assertEquals("[ERROR] 이름은 null이거나 빈 값일 수 없습니다.", exception.getMessage());
     }
 

@@ -8,8 +8,8 @@ import store.domain.vo.Quantity;
 public class Product {
     private final Name name;
     private final Money money;
-    private final Quantity quantity;
     private final PromotionType promotionType;
+    private Quantity quantity;
 
     private Product(Name name, Money money, Quantity quantity, PromotionType promotionType) {
         this.name = name;
@@ -30,6 +30,10 @@ public class Product {
         return money;
     }
 
+    public int getPrice() {
+        return money.getPrice();
+    }
+
     public Quantity getQuantity() {
         return quantity;
     }
@@ -37,4 +41,23 @@ public class Product {
     public PromotionType getPromotionType() {
         return promotionType;
     }
+
+    public boolean isStockNotAvailable(Quantity requestedQuantity) {
+        return quantity.isNotEnough(requestedQuantity);
+    }
+
+    public void updateQuantity(int newQuantity) {
+        this.quantity = Quantity.newInstance(newQuantity);
+    }
+
+//    @Override
+//    public boolean equals(Object obj) {
+//        if (this == obj) return true;
+//        if (obj == null || getClass() != obj.getClass()) return false;
+//        Product product = (Product) obj;
+//        return name.equals(product.name) &&
+//                money.equals(product.money) &&
+//                quantity.equals(product.quantity) &&
+//                promotionType == product.promotionType;
+//    }
 }

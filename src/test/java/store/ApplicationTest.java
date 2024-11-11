@@ -2,6 +2,7 @@ package store;
 
 import camp.nextstep.edu.missionutils.test.NsTest;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
@@ -25,8 +26,20 @@ class ApplicationTest extends NsTest {
     }
 
     private void resetProductFile() throws IOException {
-        List<String> initialData = Files.readAllLines(Paths.get(initialProductFilePath));
+        // resources 폴더에서 초기 데이터를 읽어서 products.md 파일을 덮어씌운다.
+        List<String> initialData = loadInitialData();
         Files.write(Paths.get(productsFilePath), initialData);
+    }
+
+    // resources 폴더 내의 initial_products.md 파일을 읽어오는 메서드
+    private List<String> loadInitialData() throws IOException {
+        try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream("initial_products.md")) {
+            if (inputStream == null) {
+                throw new IOException("초기 제품 파일을 찾을 수 없습니다.");
+            }
+            return new java.io.BufferedReader(new java.io.InputStreamReader(inputStream))
+                    .lines().collect(java.util.stream.Collectors.toList());
+        }
     }
 
     @Test

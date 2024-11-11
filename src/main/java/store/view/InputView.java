@@ -5,4 +5,6 @@ import store.dto.ProductSelectionDTO;
 
 public interface InputView {
     List<ProductSelectionDTO> readProductSelections();
+
+    boolean readUserConfirmation();
 }

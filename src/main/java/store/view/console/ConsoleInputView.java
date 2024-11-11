@@ -26,4 +26,12 @@ public class ConsoleInputView implements InputView {
                 .map(selection -> Parser.parseSelection(selection, DELIMITER_DASH))
                 .collect(Collectors.toList());
     }
+
+    public boolean readUserConfirmation() {
+        String input = Console.readLine().toUpperCase();
+        if (!input.equals("Y") && !input.equals("N")) {
+            throw StoreArgumentException.from(ArgumentErrorMessage.INVALID_INPUT);
+        }
+        return input.equals("Y");
+    }
 }

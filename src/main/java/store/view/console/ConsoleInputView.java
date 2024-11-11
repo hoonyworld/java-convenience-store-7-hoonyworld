@@ -13,6 +13,9 @@ import store.view.InputView;
 public class ConsoleInputView implements InputView {
     private static final String DELIMITER_COMMA = ",";
     private static final String DELIMITER_DASH = "-";
+    private static final String YES = "Y";
+    private static final String NO = "N";
+
 
     @Override
     public List<ProductSelectionDTO> readProductSelections() {
@@ -29,9 +32,9 @@ public class ConsoleInputView implements InputView {
 
     public boolean readUserConfirmation() {
         String input = Console.readLine().toUpperCase();
-        if (!input.equals("Y") && !input.equals("N")) {
+        if (!input.equals(YES) && !input.equals(NO)) {
             throw StoreArgumentException.from(ArgumentErrorMessage.INVALID_INPUT);
         }
-        return input.equals("Y");
+        return input.equals(YES);
     }
 }

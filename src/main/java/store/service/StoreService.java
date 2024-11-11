@@ -65,7 +65,6 @@ public class StoreService {
 
         for (Promotion promotion : promotions) {
             if (promotion.getName().equals(product.getPromotionType())) {
-                System.out.println("sdfa");
                 promotionAvailable = true;
                 int buyRequirement = promotion.getBuy();
                 int getFreeQuantity = promotion.getGet();

@@ -35,9 +35,6 @@ public class PromotionResult {
     }
 
     public boolean requiresPromotionQuantityMessage() {
-        System.out.println(promotionAvailable);
-        System.out.println(nonPromotionQuantity);
-        System.out.println(hasSufficientStock);
         return promotionAvailable && nonPromotionQuantity > 0 && hasSufficientStock;
     }
 

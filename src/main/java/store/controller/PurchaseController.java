@@ -1,10 +1,13 @@
 package store.controller;
 
+import java.util.ArrayList;
 import java.util.List;
+import store.domain.entity.Product;
 import store.domain.entity.Promotion;
 import store.dto.ProductSelectionDTO;
 import store.dto.PromotionResult;
 import store.exception.StoreArgumentException;
+import store.service.ProductService;
 import store.service.PromotionService;
 import store.service.StoreService;
 import store.template.RetryTemplate;
@@ -14,14 +17,16 @@ import store.view.OutputView;
 public class PurchaseController {
     private final StoreService storeService;
     private final PromotionService promotionService;
+    private final ProductService productService;
     private final InputView inputView;
     private final OutputView outputView;
     private final RetryTemplate retryTemplate;
     private final ProductController productController;
 
-    public PurchaseController(StoreService storeService, PromotionService promotionService, InputView inputView,
+    public PurchaseController(StoreService storeService, PromotionService promotionService, ProductService productService, InputView inputView,
                               OutputView outputView, RetryTemplate retryTemplate, ProductController productController) {
         this.storeService = storeService;
+        this.productService = productService;
         this.promotionService = promotionService;
         this.inputView = inputView;
         this.outputView = outputView;
@@ -54,19 +59,36 @@ public class PurchaseController {
         }
 
         outputView.displayPurchaseResult(results);
+
+        updateStockAndSaveToFile(results);
     }
 
-    // 구매 결과 처리 시 재입력 메소드
+
+    private void updateStockAndSaveToFile(List<PromotionResult> results) {
+        List<Product> updatedProducts = new ArrayList<>();
+
+        for (PromotionResult result : results) {
+            Product product = productService.findProductByNameAsEntity(result.getProduct().getName());
+
+            int newQuantity = product.getQuantity().getAmount() - result.getTotalQuantity();
+            product.updateQuantity(newQuantity);
+
+            updatedProducts.add(product);
+        }
+
+        productService.updateProductStock(updatedProducts);
+    }
+
     private List<PromotionResult> getPurchaseResultsWithRetry(List<ProductSelectionDTO> selections) {
         return retryTemplate.execute(() -> {
             try {
-                return storeService.processPurchase(selections);  // 예외 발생 시 재입력
+                return storeService.processPurchase(selections);
             } catch (StoreArgumentException e) {
                 outputView.printExceptionMessage(e);
                 productController.displayProducts();
-                // 상품 선택을 다시 받기
+
                 List<ProductSelectionDTO> newSelections = getSelectionsWithRetry();
-                return storeService.processPurchase(newSelections);  // 재입력 후 다시 처리
+                return storeService.processPurchase(newSelections);
             }
         });
     }
@@ -77,7 +99,7 @@ public class PurchaseController {
                 return inputView.readProductSelections();
             } catch (StoreArgumentException e) {
                 outputView.printExceptionMessage(e);
-                productController.displayProducts(); // Re-display product list on invalid input
+                productController.displayProducts();
                 throw e;
             }
         });

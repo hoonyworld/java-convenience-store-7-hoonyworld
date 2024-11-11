@@ -51,7 +51,7 @@ public class AppConfig {
     }
 
     private PurchaseController purchaseController() {
-        return new PurchaseController(createStoreService(), createPromotionService(), createInputView(), createOutputView(), createRetryTemplate(), productController());
+        return new PurchaseController(createStoreService(), createPromotionService(), createProductService(), createInputView(), createOutputView(), createRetryTemplate(), productController());
     }
 
     private InputView createInputView() {

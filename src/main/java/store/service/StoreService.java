@@ -42,8 +42,6 @@ public class StoreService {
 
         }
 
-//        updateStockAfterPurchase(selections);
-
         return results;
     }
 
@@ -94,28 +92,6 @@ public class StoreService {
                 canReceiveMorePromotion,
                 product
         );
-    }
-
-    private void updateStockAfterPurchase(List<ProductSelectionDTO> selections) {
-        // 변경된 제품을 저장할 리스트
-        List<Product> updatedProducts = new ArrayList<>();
-
-        for (ProductSelectionDTO selection : selections) {
-            // Product 엔티티를 가져오기 (DTO에서 엔티티로 변환)
-            Product product = productService.findProductByNameAsEntity(selection.name());  // selection.getName() 대신 selection.name()을 직접 사용
-
-            // 현재 재고에서 구매한 수량을 빼서 새로운 수량 계산
-            int newQuantity = product.getQuantity().getAmount() - selection.quantity().getAmount();  // selection.getQuantity() 대신 selection.quantity()를 사용
-
-            // 재고 업데이트
-            product.updateQuantity(newQuantity);
-
-            // 변경된 제품을 updatedProducts 리스트에 추가
-            updatedProducts.add(product);
-        }
-
-        // 변경된 제품 목록을 저장 (변경된 제품만 처리)
-        productService.updateProductStock(updatedProducts);
     }
 
     private boolean canReceiveMorePromotion(int requestedQuantity, List<Promotion> promotions, Product product) {

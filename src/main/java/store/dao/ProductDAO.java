@@ -3,6 +3,7 @@ package store.dao;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -49,36 +50,57 @@ public class ProductDAO {
 
     public void updateAll(List<Product> updatedProducts) {
         try {
-            List<String> updatedLines = findAll().stream()
-                    .map(product -> {
-                        // 변경된 제품을 업데이트된 리스트에서 찾음
-                        for (Product updatedProduct : updatedProducts) {
-                            if (product.getName().equals(updatedProduct.getName()) && !product.equals(updatedProduct)) {
-                                // 재고가 변경되었으면 새로 업데이트된 정보를 반영
-                                return updatedProductToString(updatedProduct);
-                            }
-                        }
-                        // 변경되지 않은 제품은 원래 그대로 반환
-                        return productToString(product);
-                    })
-                    .collect(Collectors.toList());
+            List<String> lines = Files.readAllLines(productsFilePath);
+            List<String> updatedLines = new ArrayList<>();
+            updatedLines.add(lines.get(0));
 
-            // 변경된 데이터를 파일에 다시 저장
+            for (int i = 1; i < lines.size(); i++) {
+                String line = lines.get(i);
+                updatedLines.add(updateProductIfChanged(line, updatedProducts));
+            }
+
             Files.write(productsFilePath, updatedLines);
         } catch (IOException e) {
-            throw StoreStateException.from(StateErrorMessage.FILE_OPERATION_ERROR);
+            handleFileOperationException(e);
         }
     }
 
-    private String updatedProductToString(Product product) {
-        return String.join(DELIMITER,
-                product.getName().toString(),
-                String.valueOf(product.getMoney().getPrice()),
-                String.valueOf(product.getQuantity().getAmount()),
-                product.getPromotionType().toString());
+    private String updateProductIfChanged(String line, List<Product> updatedProducts) {
+        String[] fields = line.split(",");
+        Product product = createProductFromFields(fields);
+
+        for (Product updatedProduct : updatedProducts) {
+            if (isProductUpdated(product, updatedProduct)) {
+                return updatedProductToString(updatedProduct);
+            }
+        }
+        return line;
     }
 
-    private String productToString(Product product) {
+    private Product createProductFromFields(String[] fields) {
+        String productName = fields[0];
+        int price = Integer.parseInt(fields[1]);
+        int quantity = Integer.parseInt(fields[2]);
+        String promotion = fields[3];
+        return Product.create(Name.newInstance(productName), Money.newInstance(price), Quantity.newInstance(quantity), PromotionType.from(promotion));
+    }
+
+    private boolean isProductUpdated(Product product, Product updatedProduct) {
+        boolean isPromotionTypeEqual = (product.getPromotionType() == null && updatedProduct.getPromotionType() == null)
+                || (product.getPromotionType() != null && updatedProduct.getPromotionType() != null
+                && product.getPromotionType().equals(updatedProduct.getPromotionType()));
+        return product.getName().equals(updatedProduct.getName())
+                && product.getMoney().equals(updatedProduct.getMoney())
+                && !product.getQuantity().equals(updatedProduct.getQuantity()) // 수량 비교
+                && isPromotionTypeEqual;
+    }
+
+    private void handleFileOperationException(IOException e) {
+        System.err.println("파일 작업 중 오류 발생: " + e.getMessage());
+        throw StoreStateException.from(StateErrorMessage.FILE_OPERATION_ERROR);
+    }
+
+    private String updatedProductToString(Product product) {
         return String.join(DELIMITER,
                 product.getName().toString(),
                 String.valueOf(product.getMoney().getPrice()),

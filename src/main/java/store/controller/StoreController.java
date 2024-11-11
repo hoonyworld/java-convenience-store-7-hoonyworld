@@ -34,7 +34,7 @@ public class StoreController {
             boolean isShopping = handleShopping();
 
             if (!isShopping) {
-//                saveToOriginalFile();
+                saveToOriginalFile();
                 return;
             }
         }

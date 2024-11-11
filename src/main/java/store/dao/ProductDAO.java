@@ -47,6 +47,45 @@ public class ProductDAO {
                 .orElseThrow(() -> StoreArgumentException.from(ArgumentErrorMessage.PRODUCT_NOT_FOUND));
     }
 
+    public void updateAll(List<Product> updatedProducts) {
+        try {
+            List<String> updatedLines = findAll().stream()
+                    .map(product -> {
+                        // 변경된 제품을 업데이트된 리스트에서 찾음
+                        for (Product updatedProduct : updatedProducts) {
+                            if (product.getName().equals(updatedProduct.getName()) && !product.equals(updatedProduct)) {
+                                // 재고가 변경되었으면 새로 업데이트된 정보를 반영
+                                return updatedProductToString(updatedProduct);
+                            }
+                        }
+                        // 변경되지 않은 제품은 원래 그대로 반환
+                        return productToString(product);
+                    })
+                    .collect(Collectors.toList());
+
+            // 변경된 데이터를 파일에 다시 저장
+            Files.write(productsFilePath, updatedLines);
+        } catch (IOException e) {
+            throw StoreStateException.from(StateErrorMessage.FILE_OPERATION_ERROR);
+        }
+    }
+
+    private String updatedProductToString(Product product) {
+        return String.join(DELIMITER,
+                product.getName().toString(),
+                String.valueOf(product.getMoney().getPrice()),
+                String.valueOf(product.getQuantity().getAmount()),
+                product.getPromotionType().toString());
+    }
+
+    private String productToString(Product product) {
+        return String.join(DELIMITER,
+                product.getName().toString(),
+                String.valueOf(product.getMoney().getPrice()),
+                String.valueOf(product.getQuantity().getAmount()),
+                product.getPromotionType().toString());
+    }
+
     private Product parseProduct(String line) {
         List<String> parts = List.of(line.split(DELIMITER));
 

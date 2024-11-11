@@ -18,4 +18,6 @@ public interface OutputView {
     void displayMembershipPrompt();
 
     void displayPurchaseResult(List<PromotionResult> results);
+
+    void displayRetryMessage();
 }

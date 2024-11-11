@@ -94,6 +94,11 @@ public class ConsoleOutputView implements OutputView {
         System.out.println("====================================");
     }
 
+    @Override
+    public void displayRetryMessage() {
+        System.out.println("감사합니다. 구매하고 싶은 다른 상품이 있나요? (Y/N)");
+    }
+
 
     private String formatProduct(ProductDisplayDTO product) {
         StringBuilder productInfo = new StringBuilder(DASH + SPACE)

@@ -26,23 +26,24 @@ public class StoreController {
     }
 
     public void run() {
-
+        while (true) {
             productController.displayProducts();
 
             purchaseController.handlePurchaseWithRetryDisplay();
 
-//            boolean isShopping = handleShopping();
+            boolean isShopping = handleShopping();
 
-//            if (!isShopping) {
-////                saveToOriginalFile();
-//                break;
-//            }
-
+            if (!isShopping) {
+//                saveToOriginalFile();
+                return;
+            }
+        }
     }
 
     private boolean handleShopping() {
         return retryTemplate.execute(() -> {
             try {
+                outputView.displayRetryMessage();
                 return inputView.readUserConfirmation();
             } catch (StoreArgumentException e) {
                 outputView.printExceptionMessage(e);

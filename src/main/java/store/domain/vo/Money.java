@@ -16,6 +16,10 @@ public class Money {
         return new Money(amount);
     }
 
+    public int getPrice() {
+        return price;
+    }
+
     private void validate(int amount) {
         if (amount < 0) {
             throw StoreArgumentException.from(ArgumentErrorMessage.INVALID_MONEY);

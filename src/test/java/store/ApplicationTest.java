@@ -1,6 +1,11 @@
 package store;
 
 import camp.nextstep.edu.missionutils.test.NsTest;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
@@ -10,6 +15,20 @@ import static camp.nextstep.edu.missionutils.test.Assertions.assertSimpleTest;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ApplicationTest extends NsTest {
+
+    private static final String productsFilePath = "src/main/resources/products.md";
+    private static final String initialProductFilePath = "src/main/resources/initial_products.md";
+
+    @BeforeEach
+    void setUp() throws IOException {
+        resetProductFile();
+    }
+
+    private void resetProductFile() throws IOException {
+        List<String> initialData = Files.readAllLines(Paths.get(initialProductFilePath));
+        Files.write(Paths.get(productsFilePath), initialData);
+    }
+
     @Test
     void 파일에_있는_상품_목록_출력() {
         assertSimpleTest(() -> {

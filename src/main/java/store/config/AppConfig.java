@@ -1,10 +1,14 @@
 package store.config;
 
 import java.nio.file.Path;
+import store.controller.ProductController;
+import store.controller.PurchaseController;
 import store.controller.StoreController;
 import store.dao.ProductDAO;
 import store.dao.PromotionDAO;
 import store.io.CacheFileInitializer;
+import store.service.ProductService;
+import store.service.PromotionService;
 import store.service.StoreService;
 import store.template.RetryTemplate;
 import store.view.InputView;
@@ -14,7 +18,7 @@ import store.view.console.ConsoleOutputView;
 
 public class AppConfig {
     private static final Path PRODUCTS_FILE_PATH = Path.of("src/main/resources/products.md");
-    private static final Path PRODUCTS_CACHE_FILE_PATH = Path.of("src/main/resources/product_cache.md");
+    private static final Path PRODUCTS_CACHE_FILE_PATH = Path.of("src/main/resources/products_cache.md");
     private static final Path PROMOTIONS_FILE_PATH = Path.of("src/main/resources/promotions.md");
 
     private AppConfig() {
@@ -33,7 +37,21 @@ public class AppConfig {
     }
 
     public StoreController storeController() {
-        return new StoreController(createInputView(), createOutputView(), createStoreService(), createRetryTemplate());
+        return new StoreController(
+                productController(),
+                purchaseController(),
+                createInputView(),
+                createOutputView(),
+                createRetryTemplate()
+        );
+    }
+
+    private ProductController productController() {
+        return new ProductController(createProductService(), createOutputView(), createRetryTemplate());
+    }
+
+    private PurchaseController purchaseController() {
+        return new PurchaseController(createStoreService(), createPromotionService(), createInputView(), createOutputView(), createRetryTemplate(), productController());
     }
 
     private InputView createInputView() {
@@ -45,7 +63,15 @@ public class AppConfig {
     }
 
     private StoreService createStoreService() {
-        return new StoreService(createProductDAO(), createPromotionDAO());
+        return new StoreService(createProductService(), createPromotionService());
+    }
+
+    private ProductService createProductService() {
+        return new ProductService(createProductDAO());
+    }
+
+    private PromotionService createPromotionService() {
+        return new PromotionService(createPromotionDAO());
     }
 
     private ProductDAO createProductDAO() {

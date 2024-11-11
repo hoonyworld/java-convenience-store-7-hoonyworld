@@ -20,6 +20,14 @@ public class Quantity {
         return amount == 0;
     }
 
+    public boolean isNotEnough(Quantity required) {
+        return this.amount < required.amount;
+    }
+
+    public int getAmount() {
+        return amount;
+    }
+
     private void validate(int amount) {
         if (amount < 0) {
             throw StoreArgumentException.from(ArgumentErrorMessage.INVALID_QUANTITY);

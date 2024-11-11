@@ -60,6 +60,10 @@ public class ProductService {
         }
     }
 
+    public void updateProductStock(List<Product> updatedProducts) {
+        productDAO.updateAll(updatedProducts);
+    }
+
     private Map<Name, List<ProductDTO>> groupProductsByName(List<ProductDTO> productDTOS) {
         return productDTOS.stream()
                 .collect(Collectors.groupingBy(ProductDTO::name, LinkedHashMap::new, Collectors.toList()));

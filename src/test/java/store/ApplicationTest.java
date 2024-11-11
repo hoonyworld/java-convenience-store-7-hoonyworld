@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -38,7 +39,7 @@ class ApplicationTest extends NsTest {
                 throw new IOException("초기 제품 파일을 찾을 수 없습니다.");
             }
             return new java.io.BufferedReader(new java.io.InputStreamReader(inputStream))
-                    .lines().collect(java.util.stream.Collectors.toList());
+                    .lines().collect(Collectors.toList());
         }
     }
 

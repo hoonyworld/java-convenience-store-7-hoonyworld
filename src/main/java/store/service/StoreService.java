@@ -1,91 +1,156 @@
 package store.service;
 
-import store.dao.ProductDAO;
-import store.domain.entity.Product;
-import store.dto.ProductDTO;
-import store.dto.ProductDisplayDTO;
-import store.domain.vo.Name;
-import store.domain.PromotionType;
-import store.domain.vo.Quantity;
-
+import camp.nextstep.edu.missionutils.DateTimes;
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.LinkedHashMap;
+import java.util.Set;
 import java.util.stream.Collectors;
+import store.domain.entity.Product;
+import store.domain.entity.Promotion;
+import store.domain.vo.Name;
+import store.dto.ProductSelectionDTO;
+import store.dto.PromotionResult;
 
 public class StoreService {
-    private final ProductDAO productDAO;
+    private final ProductService productService;
+    private final PromotionService promotionService;
 
-    public StoreService(ProductDAO productDAO) {
-        this.productDAO = productDAO;
+    public StoreService(ProductService productService, PromotionService promotionService) {
+        this.productService = productService;
+        this.promotionService = promotionService;
     }
 
-    public List<ProductDTO> findAllProducts() {
-        return productDAO.findAll().stream()
-                .map(ProductDTO::from)
-                .collect(Collectors.toList());
-    }
+    public List<PromotionResult> processPurchase(List<ProductSelectionDTO> selections) {
+        LocalDate currentDate = DateTimes.now().toLocalDate();
+        List<PromotionResult> results = new ArrayList<>();
 
-    public List<ProductDisplayDTO> findAllProductsForDisplay(List<ProductDTO> productDTOS) {
-        Map<Name, List<ProductDTO>> groupedProducts = groupProductsByName(productDTOS);
-        List<ProductDisplayDTO> displayProductList = new ArrayList<>();
+        for (ProductSelectionDTO selection : selections) {
+            Product product = productService.findProductByNameAsEntity(selection.name());
 
-        for (Map.Entry<Name, List<ProductDTO>> entry : groupedProducts.entrySet()) {
-            List<ProductDTO> products = entry.getValue();
+            Set<Name> productNames = new HashSet<>();
+            productService.validateUniqueProductName(selection, productNames);
+            productService.validateStockAvailability(selection, product);
 
-            addPromotionProducts(products, displayProductList);
-            addRegularProducts(products, displayProductList);
+            List<Promotion> promotions = promotionService.findAllPromotionsAsEntities().stream()
+                    .filter(promotion -> promotion.isPromotionActive(currentDate))
+                    .collect(Collectors.toList());
+
+            PromotionResult result = applyPromotionIfEligible(selection.quantity().getAmount(), product, promotions);
+            results.add(result);
+
         }
 
-        return displayProductList;
+//        updateStockAfterPurchase(selections);
+
+        return results;
     }
 
-    private Map<Name, List<ProductDTO>> groupProductsByName(List<ProductDTO> productDTOS) {
-        return productDTOS.stream()
-                .collect(Collectors.groupingBy(ProductDTO::name, LinkedHashMap::new, Collectors.toList()));
-    }
-
-    private void addPromotionProducts(List<ProductDTO> products, List<ProductDisplayDTO> displayProductList) {
-        boolean hasPromotion = products.stream()
-                .anyMatch(p -> p.promotionType() != PromotionType.NONE);
-        boolean hasRegularProduct = products.stream()
-                .anyMatch(p -> p.promotionType() == PromotionType.NONE);
-
-        addPromotionProductsToList(products, displayProductList);
-        addOutOfStockForPromotionOnly(hasPromotion, hasRegularProduct, products, displayProductList);
-    }
-
-    private void addPromotionProductsToList(List<ProductDTO> products, List<ProductDisplayDTO> displayProductList) {
-        products.stream()
-                .filter(p -> p.promotionType() != PromotionType.NONE)
-                .forEach(p -> displayProductList.add(
-                        ProductDisplayDTO.of(p.name(), p.money(), p.quantity(), p.promotionType())));
-    }
-
-    private void addOutOfStockForPromotionOnly(boolean hasPromotion, boolean hasRegularProduct,
-                                               List<ProductDTO> products, List<ProductDisplayDTO> displayProductList) {
-        if (hasPromotion && !hasRegularProduct) {
-            ProductDTO sampleProduct = products.getFirst();
-            displayProductList.add(
-                    ProductDisplayDTO.of(sampleProduct.name(), sampleProduct.money(), Quantity.newInstance(0),
-                            PromotionType.NONE));
+    public void applyMembershipDiscount(List<PromotionResult> results) {
+        for (PromotionResult result : results) {
+            if (!result.hasPromotion()) {
+                result.applyMembershipDiscount();
+            }
         }
     }
 
-    private void addRegularProducts(List<ProductDTO> products, List<ProductDisplayDTO> displayProductList) {
-        products.stream()
-                .filter(p -> p.promotionType() == PromotionType.NONE)
-                .forEach(p -> addRegularProductToList(p, displayProductList));
+    public PromotionResult applyPromotionIfEligible(int requestedQuantity, Product product, List<Promotion> promotions) {
+        boolean promotionAvailable = false;
+        int promotionalQuantity = 0;
+        int nonPromotionQuantity = requestedQuantity;
+        int pricePerUnit = product.getPrice();
+        int totalPrice = requestedQuantity * pricePerUnit;
+        int discount = 0;
+
+        for (Promotion promotion : promotions) {
+            if (promotion.getName().equals(product.getPromotionType())) {
+                System.out.println("sdfa");
+                promotionAvailable = true;
+                int buyRequirement = promotion.getBuy();
+                int getFreeQuantity = promotion.getGet();
+
+                promotionalQuantity = requestedQuantity / (buyRequirement + getFreeQuantity);
+                nonPromotionQuantity = requestedQuantity - promotionalQuantity;
+
+                discount = promotionalQuantity * pricePerUnit;
+                break;
+            }
+        }
+
+        boolean hasSufficientStock = product.getQuantity().getAmount() >= promotionalQuantity;
+        boolean canReceiveMorePromotion = canReceiveMorePromotion(requestedQuantity, promotions, product);
+
+        return new PromotionResult(
+                product.getName().toString(),
+                requestedQuantity,
+                promotionalQuantity,
+                nonPromotionQuantity,
+                promotionAvailable,
+                hasSufficientStock,
+                totalPrice,
+                discount,
+                pricePerUnit,
+                0,
+                canReceiveMorePromotion,
+                product
+        );
     }
 
-    private void addRegularProductToList(ProductDTO p, List<ProductDisplayDTO> displayProductList) {
-        removeOutOfStockRegularProduct(displayProductList, p);
-        displayProductList.add(ProductDisplayDTO.of(p.name(), p.money(), p.quantity(), PromotionType.NONE));
+    private void updateStockAfterPurchase(List<ProductSelectionDTO> selections) {
+        // 변경된 제품을 저장할 리스트
+        List<Product> updatedProducts = new ArrayList<>();
+
+        for (ProductSelectionDTO selection : selections) {
+            // Product 엔티티를 가져오기 (DTO에서 엔티티로 변환)
+            Product product = productService.findProductByNameAsEntity(selection.name());  // selection.getName() 대신 selection.name()을 직접 사용
+
+            // 현재 재고에서 구매한 수량을 빼서 새로운 수량 계산
+            int newQuantity = product.getQuantity().getAmount() - selection.quantity().getAmount();  // selection.getQuantity() 대신 selection.quantity()를 사용
+
+            // 재고 업데이트
+            product.updateQuantity(newQuantity);
+
+            // 변경된 제품을 updatedProducts 리스트에 추가
+            updatedProducts.add(product);
+        }
+
+        // 변경된 제품 목록을 저장 (변경된 제품만 처리)
+        productService.updateProductStock(updatedProducts);
     }
 
-    private void removeOutOfStockRegularProduct(List<ProductDisplayDTO> displayProductList, ProductDTO p) {
-        displayProductList.removeIf(
-                d -> d.name().equals(p.name()) && d.promotionType() == PromotionType.NONE && d.quantity().isZero());
+    private boolean canReceiveMorePromotion(int requestedQuantity, List<Promotion> promotions, Product product) {
+        for (Promotion promotion : promotions) {
+            if (promotion.getName().equals(product.getPromotionType())) {
+                int buyRequirement = promotion.getBuy();
+                int getFreeQuantity = promotion.getGet();
+
+                if (isTwoPlusOnePromotion(buyRequirement, getFreeQuantity)) {
+                    return needsMorePromotionForTwoPlusOne(requestedQuantity, buyRequirement, getFreeQuantity);
+                }
+                if (isOnePlusOnePromotion(buyRequirement, getFreeQuantity)) {
+                    return needsMorePromotionForOnePlusOne(requestedQuantity, buyRequirement);
+                }
+                return false;
+            }
+        }
+        return false;
+    }
+
+    private boolean isTwoPlusOnePromotion(int buyRequirement, int getFreeQuantity) {
+        return buyRequirement == 2 && getFreeQuantity == 1;
+    }
+
+    private boolean isOnePlusOnePromotion(int buyRequirement, int getFreeQuantity) {
+        return buyRequirement == 1 && getFreeQuantity == 1;
+    }
+
+    private boolean needsMorePromotionForTwoPlusOne(int requestedQuantity, int buyRequirement, int getFreeQuantity) {
+        int promotionUnit = buyRequirement + getFreeQuantity;
+        return (requestedQuantity % promotionUnit != 0) && (requestedQuantity % promotionUnit != 1);
+    }
+
+    private boolean needsMorePromotionForOnePlusOne(int requestedQuantity, int buyRequirement) {
+        return requestedQuantity % (buyRequirement + 1) != 0;
     }
 }

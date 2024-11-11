@@ -15,7 +15,6 @@ public class RetryTemplate {
             try {
                 return supplier.get();
             } catch (IllegalArgumentException e) {
-                outputView.printExceptionMessage(e);
             }
         }
     }
@@ -26,7 +25,6 @@ public class RetryTemplate {
                 action.run();
                 break;
             } catch (IllegalArgumentException e) {
-                outputView.printExceptionMessage(e);
             }
         }
     }
